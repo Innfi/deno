@@ -1,13 +1,26 @@
+import { Application } from "https://deno.land/x/oak@v11.1.0/mod.ts";
+export { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
+
 export function add(a: number, b: number): number {
   return a + b;
 }
 
-// // Learn more at https://deno.land/manual/examples/module_metadata#concepts
-// if (import.meta.main) {
-//   console.log("Add 2 + 3 =", add(2, 3));
-// }
 
-import { Application } from "https://deno.land/x/oak@v11.1.0/mod.ts";
+type Constructor<T = unknown> = new (...args: any[]) => T;
+
+function Deco<T>(_: Constructor<T>): void {}
+
+@Deco
+class Initial {
+  constructor(a: string, b: number) {
+
+  }
+}
+
+console.log(`before reflect`);
+const metadata = Reflect.getMetadata("design:paramtypes", Initial);
+console.log(metadata);
+console.log(`after reflect`);
 
 const app = new Application();
 
