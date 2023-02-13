@@ -6,21 +6,35 @@ export function add(a: number, b: number): number {
 }
 
 
+// deno-lint-ignore no-explicit-any
 type Constructor<T = unknown> = new (...args: any[]) => T;
 
 function Deco<T>(_: Constructor<T>): void {}
+
+function LogMethod(target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
+  console.log(Reflect.getMetadata("design:type", target, propertyKey));
+  console.log(Reflect.getMetadata("design:paramtypes", target, propertyKey)[0]);
+  console.log(Reflect.getMetadata("design:paramtypes", target, propertyKey)[1]);
+  console.log(Reflect.getMetadata("design:returntype", target, propertyKey));
+}
 
 @Deco
 class Initial {
   constructor(a: string, b: number) {
 
   }
+
+  @LogMethod
+  public testDeco(input1: number, input2: string): string {
+    return 'testDeco called';
+  }
 }
 
-console.log(`before reflect`);
-const metadata = Reflect.getMetadata("design:paramtypes", Initial);
-console.log(metadata);
-console.log(`after reflect`);
+
+console.log(Reflect.getMetadata("design:type", Initial));
+console.log(Reflect.getMetadata("design:paramtypes", Initial));
+console.log(Reflect.getMetadata("design:returntype", Initial));
+
 
 const app = new Application();
 
