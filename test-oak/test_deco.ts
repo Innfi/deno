@@ -14,11 +14,11 @@ const requiredKey = Symbol("required");
 
 function validate(target: any, propertyName: string, descriptor: TypedPropertyDescriptor<Function>) {
   let method = descriptor.value!;
-console.log(`propName: ${propertyName}`);
+
   descriptor.value = function () {
-    let existingParams: number[] = Reflect.getOwnMetadata(requiredKey, target, propertyName);
+    let existingParams: number[] = Reflect.getMetadata(requiredKey, target, propertyName);
     if (existingParams) { console.log(`params exists`) };
-console.log(`arguments: ${JSON.stringify(arguments)}`);
+
     return method.apply(this, arguments);
   }
 }
@@ -29,11 +29,10 @@ const ReqDeco = (name: string): ParameterDecorator => {
     propertyKey: string | symbol,
     parameterIndex: number,
   ) {
-    console.log(`name: ${name}`);
-    let existingParams: number[] = Reflect.getOwnMetadata(requiredKey, target, propertyKey) || [];
+
+    let existingParams: number[] = Reflect.getMetadata(requiredKey, target, propertyKey) || [];
 
     existingParams.push(parameterIndex);
-    console.log(`--- target: ${JSON.stringify(target)}`);
 
     Reflect.defineMetadata(requiredKey, existingParams, target, propertyKey);
   }
@@ -53,7 +52,7 @@ class DecoTester {
 
 const instance = new DecoTester();
 
-instance.runner(1234, 'string input');
+//instance.runner(1234, 'string input');
 
 const input = Number('not number');
-instance.runner(input, undefined);
+//instance.runner(input, undefined);
