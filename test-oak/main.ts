@@ -11,30 +11,30 @@ type Constructor<T = unknown> = new (...args: any[]) => T;
 
 function Deco<T>(_: Constructor<T>): void {}
 
+// deno-lint-ignore no-explicit-any
 function LogMethod(target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
-  console.log(Reflect.getMetadata("design:type", target, propertyKey));
-  console.log(Reflect.getMetadata("design:paramtypes", target, propertyKey)[0]);
-  console.log(Reflect.getMetadata("design:paramtypes", target, propertyKey)[1]);
-  console.log(Reflect.getMetadata("design:returntype", target, propertyKey));
+  const original = descriptor.value;
+
+  // deno-lint-ignore no-explicit-any
+  descriptor.value = function(...args: any[]) {
+    console.log(`propertyKey: ${propertyKey.toString()}`);
+
+    return original.apply(target, args);
+  }
 }
 
 @Deco
 class Initial {
-  constructor(a: string, b: number) {
-
-  }
+  constructor() {}
 
   @LogMethod
   public testDeco(input1: number, input2: string): string {
-    return 'testDeco called';
+    return `testDeco called: ${input1}, ${input2}`;
   }
 }
 
-
-console.log(Reflect.getMetadata("design:type", Initial));
-console.log(Reflect.getMetadata("design:paramtypes", Initial));
-console.log(Reflect.getMetadata("design:returntype", Initial));
-
+const instance = new Initial();
+instance.testDeco(1, 'second');
 
 const app = new Application();
 
