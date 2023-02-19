@@ -1,11 +1,7 @@
 import { getQuery } from "https://deno.land/x/oak@v11.1.0/helpers.ts";
 import { Application, Router } from "https://deno.land/x/oak@v11.1.0/mod.ts";
-export { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
 
-export function add(a: number, b: number): number {
-  return a + b;
-}
-
+import { UserData, InitialHandler } from './initial_handler.ts';
 
 // deno-lint-ignore no-explicit-any
 type Constructor<T = unknown> = new (...args: any[]) => T;
@@ -55,7 +51,6 @@ router
   context.response.body = 'test2 response';
 });
 
-
 const app = new Application();
 
 // Logger
@@ -79,3 +74,19 @@ app.use(router.routes());
 app.use(router.allowedMethods());
 
 await app.listen({ port: 3000 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+export function add(a: number, b: number): number {
+  return a + b;
+}
