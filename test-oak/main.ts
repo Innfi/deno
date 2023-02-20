@@ -3,15 +3,29 @@ import { Application, Router } from "https://deno.land/x/oak@v11.1.0/mod.ts";
 
 import { UserData, InitialHandler } from './initial_handler.ts';
 
+
+const propStorage = {};
+
 // deno-lint-ignore no-explicit-any
 type Constructor<T = unknown> = new (...args: any[]) => T;
 
-function Deco<T>(_: Constructor<T>): void {}
+function Deco<T>(constructor: Constructor<T>): void {
+  const original = constructor.prototype;
+
+  // deno-lint-ignore no-explicit-any
+  // constructor.prototype = function(...args: any[]) { //throw errors bc constructor is a readonly prop
+  //   console.log(`from class decorator`);
+
+  //   return original.apply(this, args);
+  // }
+}
 
 // deno-lint-ignore no-explicit-any
 function LogMethod(target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
   const original = descriptor.value;
 
+  Reflect.defineProperty(propStorage, propertyKey, target);
+  
   // deno-lint-ignore no-explicit-any
   descriptor.value = function(...args: any[]) {
     console.log(`propertyKey: ${propertyKey.toString()}`);
@@ -19,6 +33,8 @@ function LogMethod(target: any, propertyKey: string | symbol, descriptor: Proper
     return original.apply(target, args);
   }
 }
+
+Reflect.defineProperty(propStorage, 'test', { value: 'value' });
 
 @Deco
 class Initial {
@@ -28,12 +44,12 @@ class Initial {
   public testDeco(input1: number, input2: string): string {
     return `testDeco called: ${input1}, ${input2}`;
   }
+
+
 }
 
 const instance = new Initial();
-instance.testDeco(1, 'second');
-
-
+console.log(instance.testDeco(1, 'second'));
 
 const router = new Router();
 router
