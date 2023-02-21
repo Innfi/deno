@@ -1,3 +1,4 @@
+import { HandlerMethod } from "./initial_deco.ts";
 
 export interface UserData {
   id?: number;
@@ -18,6 +19,7 @@ export class InitialHandler {
     this.idIndex = 0;
   }
 
+  @HandlerMethod('/user/post')
   postUser(userData: UserData): MethodResult<UserData> {
     if (!userData) {
       return {
@@ -35,6 +37,7 @@ export class InitialHandler {
     }
   }
 
+  @HandlerMethod('/user/get')
   getUser(id: number): MethodResult<UserData> {
     return {
       message: 'success',
@@ -47,3 +50,6 @@ export class InitialHandler {
     };
   }
 }
+
+const instance = new InitialHandler();
+console.log(instance.getUser(1));
