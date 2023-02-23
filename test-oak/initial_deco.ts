@@ -6,10 +6,12 @@
 
 //   }
 // }
+import { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
 
 export function HandlerMethod(name: string): MethodDecorator {
   return function(
-    target: Object, 
+    // deno-lint-ignore ban-types
+    _target: Object, 
     propertyKey: string | symbol, 
     // deno-lint-ignore no-explicit-any
     descriptor: TypedPropertyDescriptor<any>) {
@@ -28,8 +30,33 @@ export function HandlerMethod(name: string): MethodDecorator {
   }
 }
 
+export interface MethodMetadata {
+  initializer: any;  
+  key: string | symbol;
+  name: string;
+  index: number;
+  [paramIndex: string]: any;
+}
+
 // TODO
-// export function HandlerParam(): ParameterDecorator {}
+export function HandlerParam(name: string): ParameterDecorator {
+  // deno-lint-ignore ban-types
+  return function (target: Object, propertyKey: string | symbol, parameterIndex: number) {
+    console.log(`HandlerParam] name: ${name}`);
+    //console.log(`HandlerParam] target: ${target.}`);
+    console.log(`HandlerParam] propertyKey: ${propertyKey.toString()}`);
+    console.log(`HandlerParam] index: ${parameterIndex}`);
+
+    const methodMetadata: MethodMetadata = {
+      initializer: target,
+      key: propertyKey,
+      name,
+      index: parameterIndex,
+    };
+
+    Reflect.defineMetadata('test_param', methodMetadata, target);
+  }
+}
 
 
 // // deno-lint-ignore no-explicit-any
