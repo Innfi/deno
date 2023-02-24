@@ -1,58 +1,116 @@
-export { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
+import { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12/mod.ts";
 
-export const Param = (property: string): ParameterDecorator => {
-  // Reflect.defineMetadata()
+// deno-lint-ignore ban-types
+const objectList: object[] = [];
 
-  return function(target: any, propertyKey: string | symbol, parameterIndex: number) {
-    console.log(`target: ${JSON.stringify(target)}`);
-    console.log(`target: ${JSON.stringify(propertyKey)}`);
-    console.log(`target: ${JSON.stringify(parameterIndex)}`);
+enum MetadataEnum {
+  ClassData = "classInfo",
+  MethodData = "methodInfo",
+  ParamData = "paramData",
+}
+
+const ClassDeco = (path: string): ClassDecorator => {
+  // deno-lint-ignore ban-types
+  return (target: object) => {
+    Reflect.defineMetadata(MetadataEnum.ClassData, path, target);
+    objectList.push(target);
+  };
+}
+
+interface MethodInfo {
+  [key: string]: string;
+}
+
+const MethodDeco = (method: string, path: string): MethodDecorator => {
+  // deno-lint-ignore no-explicit-any
+  return (target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) => {
+    const currentMethodInfo: MethodInfo = Reflect.getMetadata(MetadataEnum.MethodData, target) || {};
+    currentMethodInfo[`${method}:${path}`] = propertyKey.toString();
+    
+    Reflect.defineMetadata(MetadataEnum.MethodData, currentMethodInfo, target);
+
+    return descriptor;
   };
 };
 
-const requiredKey = Symbol("required");
-
-function validate(target: any, propertyName: string, descriptor: TypedPropertyDescriptor<Function>) {
-  let method = descriptor.value!;
-
-  descriptor.value = function () {
-    let existingParams: number[] = Reflect.getMetadata(requiredKey, target, propertyName);
-    if (existingParams) { console.log(`params exists`) };
-
-    return method.apply(this, arguments);
-  }
+interface ParamInfo {
+  [key: string]: {
+    methodName: string,
+    paramName: string;
+    paramIndex: number,
+  };
 }
 
-const ReqDeco = (name: string): ParameterDecorator => {
-  return function required(
-    target: Object,
-    propertyKey: string | symbol,
-    parameterIndex: number,
-  ) {
+const ParamDeco = (name: string): ParameterDecorator => {
+  // deno-lint-ignore no-explicit-any
+  return (target: any, propertyKey: string | symbol, parameterIndex: number) => {
+    const current: ParamInfo = Reflect.getMetadata(MetadataEnum.ParamData, target) || {};
 
-    let existingParams: number[] = Reflect.getMetadata(requiredKey, target, propertyKey) || [];
+    console.log(`name: ${name}`);
+    console.log(`propKey: ${propertyKey.toString()}, index: ${parameterIndex}`);
 
-    existingParams.push(parameterIndex);
+    current[`${propertyKey.toString()}:${name}:${parameterIndex}`] = {
+      methodName: propertyKey.toString(),
+      paramName: name,
+      paramIndex: parameterIndex,
+    };
 
-    Reflect.defineMetadata(requiredKey, existingParams, target, propertyKey);
-  }
+    Reflect.defineMetadata(MetadataEnum.ParamData, current, target);
+  };
 };
 
-class DecoTester {
-  @validate
-  runner(
-    @ReqDeco('input') input: number,
-    @ReqDeco('tester') tester: string,
-  ): string {
-    if (input && tester) return `params: ${input}, ${tester}`;
+@ClassDeco('example')
+class Example {
+  readonly className: string;
+  userId?: number;
+  userName?: string;
+  email?: string;
 
-    return `default return`;
+  constructor(className: string) {
+    console.log(`Example] constructor called`);
+    this.className = className;
+  }
+
+  @MethodDeco('post', '/example')
+  setData(
+    @ParamDeco('userId') userId: number,
+    @ParamDeco('userName') userName: string,
+    @ParamDeco('email') email: string
+  ) {
+    this.userId = userId;
+    this.userName = userName;
+    this.email = email;
+  }
+
+  @MethodDeco('get', '/example')
+  getData(
+    @ParamDeco('userId') userId: number
+  ): { userName: string; email: string; } | undefined {
+    if (userId !== 1) return undefined;
+
+    return {
+      userName: this.userName!,
+      email: this.email!,
+    };
   }
 }
 
-const instance = new DecoTester();
+const classMetadata = Reflect.getMetadata(MetadataEnum.ClassData, Example);
+console.log(`metadata: ${classMetadata}`);
 
-//instance.runner(1234, 'string input');
+// deno-lint-ignore no-explicit-any
+const instance: Example = new (objectList[0] as any)('testName');
 
-const input = Number('not number');
-//instance.runner(input, undefined);
+const methodMetadata: MethodInfo = Reflect.getMetadata(MetadataEnum.MethodData, instance);
+Object.keys(methodMetadata).forEach((v: string) => {
+  console.log(`key: ${v}, value: ${methodMetadata[v]}`);
+});
+
+const paramMetadata: ParamInfo = Reflect.getMetadata(MetadataEnum.ParamData, instance);
+Object.keys(paramMetadata).forEach((v: string) => {
+  console.log(`key: ${v}, value: ${JSON.stringify(paramMetadata[v])}`);
+});
+
+
+instance.setData(1, 'innfi', 'innfi@test.com');
+console.log(instance.getData(1)!.userName);
