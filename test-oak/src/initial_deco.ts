@@ -1,11 +1,3 @@
-// export function Controller(path: string): ClassDecorator {
-  
-//   // TODO
-  
-//   return function() {
-
-//   }
-// }
 import { Reflect } from 'https://deno.land/x/deno_reflect@v0.2.1/mod.ts';
 
 export function HandlerMethod(name: string): MethodDecorator {
