@@ -13,12 +13,14 @@ export interface MethodInfo {
   [key: string]: string;
 }
 
+export interface ParamUnit {
+  methodName: string;
+  paramName: string;
+  paramIndex: number;
+}
+
 export interface ParamInfo {
-  [key: string]: [{
-    methodName: string,
-    paramName: string;
-    paramIndex: number,
-  }];
+  [key: string]: [ParamUnit];
 }
 
 
