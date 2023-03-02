@@ -29,13 +29,20 @@ export class Example {
 
   @MethodDeco('get', '/example')
   getData(
-    @ParamDeco('userId') userId: number
+    @ParamDeco('userId') userId: number,
+    @ParamDeco('param1') param1: string,
+    @ParamDeco('param2') param2: number,
   ): { userName: string; email: string; } | undefined {
-    if (userId !== 1) return undefined;
+    console.log(`getData] called: ${userId}, ${param1}, ${param2}`);
+
+    // return {
+    //   userName: this.userName!,
+    //   email: this.email!, 
+    // };
 
     return {
-      userName: this.userName!,
-      email: this.email!,
+      userName: 'innfi',
+      email: 'innfi@test.com',
     };
   }
 }
@@ -45,26 +52,31 @@ const naiveRouter = (
   routerParam: string, 
   controllerMethod: string,
   paramUnits: ParamUnit[],
+  // deno-lint-ignore no-explicit-any
   instance: any,
 ) => {
   const routerParams = routerParam.split(':');
   const method = routerParams[0];
   const path = routerParams[1];
-  console.log(`methodMetadata] method: ${method}, path: ${path}`);
-
-  console.log(`controllerMethod: ${controllerMethod}`);  
 
   paramUnits.sort((a, b) => a.paramIndex - b.paramIndex);
   const parameters = paramUnits.map((v) => v.paramName);
 
-  console.log(`paramInfo: ${JSON.stringify(parameters)}`);
-
   if (method === 'get') {
-    router.get(path, (context) => {
+    router[method](path, (context) => {
       const queries = getQuery(context, { mergeParams: true });
+      const methodArgs = parameters.map((v) => queries[v]);
+  
+      // console.log(`methodMetadata] method: ${method}, path: ${path}`);
+      // console.log(`controllerMethod: ${controllerMethod}`);  
+      // console.log(`paramInfo: ${JSON.stringify(parameters)}`);
+      // console.log(`methodArgs: ${JSON.stringify(methodArgs)}`);
+  
+      context.response.body = instance[controllerMethod](...methodArgs);
     });
-  }
 
+    return;
+  }
 };
 
 

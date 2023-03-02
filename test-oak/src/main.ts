@@ -6,8 +6,11 @@ router
 .get('/test1/:id', (context) => {
   console.log(`test1] param: ${JSON.stringify(context.params)}`);
 
-  const queries = getQuery(context, { mergeParams: true });
+  const queries = getQuery(context, { mergeParams: false });
   console.log(`test1] param: ${JSON.stringify(queries)}`);
+
+  console.log(`param1: ${queries['param1']}`);
+  console.log(`param2: ${queries['param2']}`);
 
   context.response.body = "test1 response";
 })
