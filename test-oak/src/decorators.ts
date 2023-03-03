@@ -7,6 +7,7 @@ export enum MetadataEnum {
   ClassData = "classInfo",
   MethodData = "methodInfo",
   ParamData = "paramData",
+  BodyData = "bodyData",
 }
 
 export interface MethodInfo {
@@ -71,3 +72,29 @@ export const ParamDeco = (name: string): ParameterDecorator => {
   };
 };
 
+export const BodyDeco = (name: string): ParameterDecorator => {
+  // deno-lint-ignore no-explicit-any
+  return (target: any, propertyKey: string | symbol, parameterIndex: number) => {
+    const current: ParamInfo = Reflect.getMetadata(MetadataEnum.BodyData, target) || {};
+
+    const key = propertyKey.toString();
+    if (!current[key]) {
+      current[key] = [{
+        methodName: propertyKey.toString(),
+        paramName: name,
+        paramIndex: parameterIndex,
+      }];
+
+      Reflect.defineMetadata(MetadataEnum.BodyData, current, target);
+      return;
+    }
+
+    current[key].push({
+      methodName: propertyKey.toString(),
+      paramName: name,
+      paramIndex: parameterIndex,
+    });
+
+    Reflect.defineMetadata(MetadataEnum.BodyData, current, target);
+  };
+};
