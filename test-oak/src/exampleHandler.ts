@@ -4,6 +4,7 @@ import { getQuery } from "https://deno.land/x/oak@v11.1.0/helpers.ts";
 
 import { ClassDeco,MethodDeco,ParamDeco,MetadataEnum,objectList,MethodInfo,ParamInfo, ParamUnit } from "./decorators.ts";
 
+
 @ClassDeco('example')
 export class Example {
   readonly className: string;
@@ -71,11 +72,17 @@ const naiveRouter = (
       // console.log(`controllerMethod: ${controllerMethod}`);  
       // console.log(`paramInfo: ${JSON.stringify(parameters)}`);
       // console.log(`methodArgs: ${JSON.stringify(methodArgs)}`);
-  
       context.response.body = instance[controllerMethod](...methodArgs);
     });
 
     return;
+  } else if (method === 'post') {
+    router[method](path, (context) => {
+      //TODO: multiple bodies?
+
+      const body = context.request.body();
+      context.response.body = instance[controllerMethod](body);
+    })
   }
 };
 
