@@ -2,7 +2,7 @@ import { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12/mod.ts";
 import { Application, Router } from "https://deno.land/x/oak@v11.1.0/mod.ts";
 import { getQuery } from "https://deno.land/x/oak@v11.1.0/helpers.ts";
 
-import { ClassDeco,MethodDeco,ParamDeco,MetadataEnum,objectList,MethodInfo,ParamInfo, ParamUnit, BodyDeco } from "./decorators.ts";
+import { ClassDeco,MethodDeco,ParamDeco,MetadataEnum,objectList,MethodInfo, BodyDeco, ArgumentUnit, ArgumentInfo } from "./decorators.ts";
 
 export interface TestBody {
   userId: number;
@@ -51,7 +51,7 @@ const naiveRouter = (
   router: Router, 
   routerParam: string, 
   controllerMethod: string,
-  paramUnits: ParamUnit[],
+  argsUnits: ArgumentUnit[],
   // deno-lint-ignore no-explicit-any
   instance: any,
 ) => {
@@ -62,7 +62,7 @@ const naiveRouter = (
   if (method === 'get') {
     router[method](path, (context) => {
       // paramUnits.sort((a, b) => a.paramIndex - b.paramIndex);
-      const parameters = paramUnits.map((v) => v.paramName);
+      const parameters = argsUnits.map((v) => v.argName);
       console.log(`params: ${JSON.stringify(parameters)}`);
 
       const queries = getQuery(context, { mergeParams: true });
@@ -92,13 +92,13 @@ objectList.forEach((injectorTarget: object) => {
   const instance = new (injectorTarget as any)('');
 
   const methodMetadata: MethodInfo = Reflect.getMetadata(MetadataEnum.MethodData, instance);
-  const paramMetadata: ParamInfo = Reflect.getMetadata(MetadataEnum.ParamData, instance);
+  const argumentInfo: ArgumentInfo = Reflect.getMetadata(MetadataEnum.ArgumentData, instance);
 
   Object.keys(methodMetadata).forEach((v: string) => {
     const controllerMethod = methodMetadata[v];
-    const paramUnits: ParamUnit[] = paramMetadata[controllerMethod];
+    const argsUnits: ArgumentUnit[] = argumentInfo[controllerMethod];
 
-    naiveRouter(router, v, controllerMethod, paramUnits, instance);
+    naiveRouter(router, v, controllerMethod, argsUnits, instance);
   });
 });
 

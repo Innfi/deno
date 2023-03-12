@@ -6,7 +6,7 @@ export const objectList: object[] = [];
 export enum MetadataEnum {
   ClassData = "classInfo",
   MethodData = "methodInfo",
-  ParamData = "paramData",
+  ArgumentData = "argData",
   BodyData = "bodyData",
 }
 
@@ -14,16 +14,18 @@ export interface MethodInfo {
   [key: string]: string;
 }
 
-export interface ParamUnit {
+export type ParamType = 'param' | 'body' | 'query';
+
+export interface ArgumentUnit {
   methodName: string;
-  paramName: string;
-  paramIndex: number;
+  argName: string;
+  argIndex: number;
+  argType: ParamType;
 }
 
-export interface ParamInfo {
-  [key: string]: [ParamUnit];
+export interface ArgumentInfo {
+  [key: string]: [ArgumentUnit];
 }
-
 
 export const ClassDeco = (path: string): ClassDecorator => {
   // deno-lint-ignore ban-types
@@ -45,56 +47,38 @@ export const MethodDeco = (method: string, path: string): MethodDecorator => {
   };
 };
 
-export const ParamDeco = (name: string): ParameterDecorator => {
+export const argumentDeco = (name: string, paramType: ParamType): ParameterDecorator => {
   // deno-lint-ignore no-explicit-any
   return (target: any, propertyKey: string | symbol, parameterIndex: number) => {
-    const current: ParamInfo = Reflect.getMetadata(MetadataEnum.ParamData, target) || {};
-
+    const current: ArgumentInfo = Reflect.getMetadata(MetadataEnum.ArgumentData, target) || {};
     const key = propertyKey.toString();
     if (!current[key]) {
       current[key] = [{
-        methodName: propertyKey.toString(),
-        paramName: name,
-        paramIndex: parameterIndex,
+        methodName: key,
+        argName: name,
+        argIndex: parameterIndex,
+        argType: paramType,
       }];
 
-      Reflect.defineMetadata(MetadataEnum.ParamData, current, target);
+      Reflect.defineMetadata(MetadataEnum.ArgumentData, current, target);
       return;
     }
 
     current[key].push({
-      methodName: propertyKey.toString(),
-      paramName: name,
-      paramIndex: parameterIndex,
+      methodName: key,
+      argName: name,
+      argIndex: parameterIndex,
+      argType: paramType,
     });
 
-    Reflect.defineMetadata(MetadataEnum.ParamData, current, target);
+    Reflect.defineMetadata(MetadataEnum.ArgumentData, current, target);
   };
 };
 
+export const ParamDeco = (name: string): ParameterDecorator => {
+  return argumentDeco(name, 'param');
+};
+
 export const BodyDeco = (name: string): ParameterDecorator => {
-  // deno-lint-ignore no-explicit-any
-  return (target: any, propertyKey: string | symbol, parameterIndex: number) => {
-    const current: ParamInfo = Reflect.getMetadata(MetadataEnum.BodyData, target) || {};
-
-    const key = propertyKey.toString();
-    if (!current[key]) {
-      current[key] = [{
-        methodName: propertyKey.toString(),
-        paramName: name,
-        paramIndex: parameterIndex,
-      }];
-
-      Reflect.defineMetadata(MetadataEnum.BodyData, current, target);
-      return;
-    }
-
-    current[key].push({
-      methodName: propertyKey.toString(),
-      paramName: name,
-      paramIndex: parameterIndex,
-    });
-
-    Reflect.defineMetadata(MetadataEnum.BodyData, current, target);
-  };
+  return argumentDeco(name, 'body');
 };
