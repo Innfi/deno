@@ -1,5 +1,5 @@
 import { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12/mod.ts";
-import { Application, Router } from "https://deno.land/x/oak@v11.1.0/mod.ts";
+import { Application, Router, RouterContext } from "https://deno.land/x/oak@v11.1.0/mod.ts";
 import { getQuery } from "https://deno.land/x/oak@v11.1.0/helpers.ts";
 
 import { ClassDeco,MethodDeco,ParamDeco,MetadataEnum,objectList,MethodInfo, BodyDeco, ArgumentUnit, ArgumentInfo } from "./decorators.ts";
@@ -59,30 +59,57 @@ const naiveRouter = (
   const method = routerParams[0];
   const path = routerParams[1];
 
-  if (method === 'get') {
-    router[method](path, (context) => {
-      // paramUnits.sort((a, b) => a.paramIndex - b.paramIndex);
-      const parameters = argsUnits.map((v) => v.argName);
-      console.log(`params: ${JSON.stringify(parameters)}`);
+  console.log(`method: ${method}, path: ${path}`);
+  console.log(`argsUnits: ${JSON.stringify(argsUnits)}`);
 
-      const queries = getQuery(context, { mergeParams: true });
-      const methodArgs = parameters.map((v) => queries[v]);
+  // deno-lint-ignore no-explicit-any
+  (router as any)[method](path, async (context: any) => {
+    const methodArgs = [];
 
-      context.response.body = instance[controllerMethod](...methodArgs);
-    });
+    for(const argUnit of argsUnits) {
+      const argData = await testParser(argUnit, context);
+      methodArgs.push(argData);
+    }
 
-    return;
-  } 
-  
-  if (method === 'post') {
-    router[method](path, async (context) => {
-      const body = await context.request.body().value;
+    methodArgs.sort((a, b) => a.index - b.index);
+    const pureData = methodArgs.map((v) => v.argData);
 
-      context.response.body = instance[controllerMethod](body);
-    })
-  }
+    context.response.body = instance[controllerMethod](...pureData);
+  });
 };
 
+// deno-lint-ignore no-explicit-any
+const testParser = async (argUnit: ArgumentUnit, context: any): Promise<{ index: number; argData: any }> => {
+  const { argType, argIndex, argName } = argUnit;
+
+  switch (argType) {
+    case 'query': {
+      const queries = getQuery(context, { mergeParams: true });
+      console.log(`argName: ${argName}, argData: ${queries[argName]}`);
+      return {
+        index: argIndex,
+        argData: queries[argName],
+      };
+    }
+    case 'param': {
+      const queries = getQuery(context, { mergeParams: true});
+      console.log(`argName: ${argName}, argData: ${queries[argName]}`);
+      return {
+        index: argIndex,
+        argData: queries[argName],
+      };
+    }
+    case 'body': {
+      const body = await context.request.body().value;
+      return {
+        index: argIndex,
+        argData: body,
+      };
+    }
+    default: 
+      throw new Error('undefined');
+  }
+};
 
 const router = new Router();
 
