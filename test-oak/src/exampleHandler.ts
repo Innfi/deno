@@ -1,5 +1,5 @@
 import { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12/mod.ts";
-import { Application, Router, RouterContext } from "https://deno.land/x/oak@v11.1.0/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak@v11.1.0/mod.ts";
 import { getQuery } from "https://deno.land/x/oak@v11.1.0/helpers.ts";
 
 import { ClassDeco,MethodDeco,ParamDeco,MetadataEnum,objectList,MethodInfo, BodyDeco, ArgumentUnit, ArgumentInfo } from "./decorators.ts";
