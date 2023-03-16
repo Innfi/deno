@@ -1,5 +1,5 @@
 import { Reflect } from "https://deno.land/x/reflect_metadata@v0.1.12/mod.ts";
-import { Application, Router } from "https://deno.land/x/oak@v11.1.0/mod.ts";
+import { Application, Router, RouterContext } from "https://deno.land/x/oak@v11.1.0/mod.ts";
 import { getQuery } from "https://deno.land/x/oak@v11.1.0/helpers.ts";
 
 import { ClassDeco,MethodDeco,ParamDeco,MetadataEnum,objectList,MethodInfo, BodyDeco, ArgumentUnit, ArgumentInfo } from "./decorators.ts";
@@ -61,9 +61,12 @@ const naiveRouter = (
 
   console.log(`method: ${method}, path: ${path}`);
   console.log(`argsUnits: ${JSON.stringify(argsUnits)}`);
-
   // deno-lint-ignore no-explicit-any
-  (router as any)[method](path, async (context: any) => {
+  (router as any)[method](path, async (context: RouterContext<
+      typeof path,
+      Record<string, string>, 
+      Record<string, any>>
+  ) => {
     const methodArgs = [];
 
     for(const argUnit of argsUnits) {
@@ -78,8 +81,11 @@ const naiveRouter = (
   });
 };
 
-// deno-lint-ignore no-explicit-any
-const testParser = async (argUnit: ArgumentUnit, context: any): Promise<{ index: number; argData: any }> => {
+const testParser = async (
+  argUnit: ArgumentUnit,
+  // deno-lint-ignore no-explicit-any
+  context: any,
+): Promise<{ index: number; argData: string | number | object }> => {
   const { argType, argIndex, argName } = argUnit;
 
   switch (argType) {
