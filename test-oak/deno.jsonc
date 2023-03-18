@@ -1,5 +1,29 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts"
+    "dev": "deno run --watch main.ts",
+    "local": "deno run --allow-net src/exampleHandler.ts"
+  },
+  "lint": {
+    "files": {
+      "include": ["src/", "test/"],
+      "exclude": []
+    },
+    "rules": {
+      "tags": ["recommended"],
+      "include": ["ban-untagged-todo"],
+      "exclude": ["no-unused-vars"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["src/", "test/"],
+      "exclude": []
+    },
+    "options": {
+      "useTabs": true,
+      "lineWidth": 100,
+      "indentWidth": 2,
+      "singleQuote": true
+    }
   }
 }
