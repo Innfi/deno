@@ -1,0 +1,11 @@
+{
+  "version": "2",
+  "remote": {
+    "https://deno.land/x/inject@v0.1.2/decorators.ts": "369a7d6973d15efe9bec4c9d632ce8f3ee7cb50c9882bae4eca53a6d323487bf",
+    "https://deno.land/x/inject@v0.1.2/helper_types.ts": "77725b0ca04ac63c9f006b55c8c6a70c422722a12b90a18e76c7f8a9250e0ab4",
+    "https://deno.land/x/inject@v0.1.2/injector.ts": "1be74803e007b4410cfe8f1e3d28150fe0c4abffc960d5af7b0413b4ab01a54e",
+    "https://deno.land/x/inject@v0.1.2/mod.ts": "b002ad92da197affe13a7cb7eeade707b9714b1347b7c6df8c11a6b280b959d0",
+    "https://deno.land/x/reflect_metadata@v0.1.12-2/Reflect.ts": "f629ad7988465fff50dd34d0b969557d85bb175a0c43fe9af3e066b4993a31e7",
+    "https://deno.land/x/reflect_metadata@v0.1.12-2/mod.ts": "8b5e3b20f1e604c118df433e84a409b1d5116e885001047134cc42ecf84fa2cd"
+  }
+}
