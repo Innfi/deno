@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "dev": "deno run --watch main.ts",
+    "run": "AWS_REGION=ap-northeast-2 deno run --allow-env --allow-read=~/.aws --allow-net ./main.ts"
+  }
+}
